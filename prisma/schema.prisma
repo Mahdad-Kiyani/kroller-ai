@@ -1,0 +1,145 @@
+// W&I AI microservice — persistence model.
+// DDD note: INFRASTRUCTURE concern. Aggregates map to these tables via mappers;
+// the domain layer never imports Prisma.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [pgvector(map: "vector")]
+}
+
+enum WarrantyCategory {
+  FUNDAMENTAL
+  BUSINESS
+  TAX
+  TAX_INDEMNITY
+}
+
+enum CoveragePosition {
+  COVERED
+  PARTIAL
+  EXCLUDED
+}
+
+enum DocumentStatus {
+  UPLOADED
+  PARSING
+  PARSED
+  FAILED
+}
+
+// A grouping/engagement the AI operates within. Owned by the panel; referenced here
+// by externalRef. Kept deliberately lightweight (this service is AI-only).
+model Deal {
+  id          String      @id @default(uuid())
+  externalRef String      @unique
+  name        String
+  governingLaw String?
+  warranties  Warranty[]
+  exclusions  Exclusion[]
+  documents   Document[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Document {
+  id         String         @id @default(uuid())
+  dealId     String
+  deal       Deal           @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  storageKey String // MinIO object key
+  filename   String
+  mimeType   String
+  status     DocumentStatus @default(UPLOADED)
+  error      String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([dealId])
+}
+
+model Warranty {
+  id            String            @id @default(uuid())
+  dealId        String
+  deal          Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  spaReference  String // verbatim SPA numbering — never regenerated
+  title         String
+  fullText      String
+
+  // --- AI categorisation (immutable suggestion) ---
+  aiCategory    WarrantyCategory?
+  aiConfidence  Float?
+  pageRef       Int?
+  // effective category after optional human override
+  category      WarrantyCategory?
+  overriddenBy  String?
+  overriddenAt  DateTime?
+
+  // --- AI coverage-position suggestion (learning loop) ---
+  aiPosition        CoveragePosition?
+  aiComment         String?
+  aiPositionScore   Float? // similarity-derived confidence 0..1
+  // human decision (the training signal)
+  decidedPosition   CoveragePosition?
+  decidedComment    String?
+  decidedBy         String?
+  decidedAt         DateTime?
+
+  // --- retrieval ---
+  embedding     Unsupported("vector(1536)")?
+  searchVector  Unsupported("tsvector")?
+
+  impacts       ExclusionImpact[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([dealId, spaReference])
+  @@index([dealId])
+}
+
+model Exclusion {
+  id         String            @id @default(uuid())
+  dealId     String
+  deal       Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  label      String
+  text       String
+  isStandard Boolean           @default(true)
+  impacts    ExclusionImpact[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([dealId])
+}
+
+// AI-produced mapping: which warranties an exclusion impacts, with rationale + confidence.
+model ExclusionImpact {
+  id          String    @id @default(uuid())
+  exclusionId String
+  exclusion   Exclusion @relation(fields: [exclusionId], references: [id], onDelete: Cascade)
+  warrantyId  String
+  warranty    Warranty  @relation(fields: [warrantyId], references: [id], onDelete: Cascade)
+  rationale   String
+  confidence  Float
+  createdAt   DateTime  @default(now())
+
+  @@unique([exclusionId, warrantyId])
+  @@index([warrantyId])
+}
+
+// Immutable record capturing AI suggestion (before) vs human decision (after).
+// The engine of the learning loop. Retention: 7 years.
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String
+  beforeJson Json?
+  afterJson  Json?
+  timestamp  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
