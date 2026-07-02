@@ -1,6 +1,7 @@
 export interface AppConfig {
   port: number;
   serviceApiKey: string;
+  corsOrigins: string[];
   redis: { host: string; port: number; username?: string; password?: string };
   storage: {
     endpoint: string;
@@ -27,6 +28,11 @@ export interface AppConfig {
 export default (): AppConfig => ({
   port: parseInt(process.env.PORT ?? '3000', 10),
   serviceApiKey: process.env.SERVICE_API_KEY ?? 'dev-service-key',
+  // Browser origins allowed to call this API directly (the AI console dev server, by default).
+  corsOrigins: (process.env.CORS_ORIGIN ?? 'http://localhost:5173,http://localhost:4173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   redis: {
     host: process.env.REDIS_HOST ?? 'localhost',
     port: parseInt(process.env.REDIS_PORT ?? '6379', 10),

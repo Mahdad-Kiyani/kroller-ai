@@ -30,6 +30,13 @@ docker compose up -d     # postgres (pgvector), redis, minio + bucket setup
 
 Copy `.env.example` to `.env` and fill in `ANTHROPIC_API_KEY` and `EMBEDDINGS_API_KEY` before running locally.
 
+### Gotchas
+
+- **Port 5432 conflict**: a local Postgres install also binds 5432. `docker-compose.yml` forwards host **5434** → container 5432 to avoid the clash — `DATABASE_URL` must use `localhost:5434`. Using 5432 hits the local Postgres with wrong credentials (`28P01 invalid_password`).
+- **Build entry point is `dist/src/main.js`, not `dist/main.js`** — `nest-cli.json` sets `sourceRoot: "src"`, so compiled output nests one level deeper. `npm run start:prod` already uses the right path; a manual `node dist/main.js` will fail.
+- **Prisma 7 skips `.env` auto-load on CLI commands.** `prisma.config.ts` at the repo root bridges this via `process.loadEnvFile('.env')`. "Connection url is empty" means `.env` is missing or this file isn't being picked up.
+- `.claude/skills/run-wi-ai-service/smoke.ps1` builds, boots the server, exercises every live endpoint (health, auth guard, deals, warranties, exclusions), and tears down — use it to verify the service end-to-end after a change instead of manual curl/Invoke-RestMethod calls.
+
 ## Architecture
 
 **DDD + CQRS** with NestJS `@nestjs/cqrs`. Every module has four layers:

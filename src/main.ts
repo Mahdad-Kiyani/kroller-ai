@@ -61,6 +61,12 @@ async function bootstrap(): Promise<void> {
   const config = app.get(ConfigService<AppConfig, true>);
   const logger = new Logger('Bootstrap');
 
+  app.enableCors({
+    origin: config.get('corsOrigins', { infer: true }),
+    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'x-api-key'],
+  });
+
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.setGlobalPrefix('api');
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
