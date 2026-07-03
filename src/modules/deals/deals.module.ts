@@ -5,6 +5,7 @@ import { DEAL_REPOSITORY } from "./domain/deal.repository";
 import { PrismaDealRepository } from "./infrastructure/prisma-deal.repository";
 import { CreateDealHandler } from "./application/commands/create-deal.handler";
 import { DeleteDealHandler } from "./application/commands/delete-deal.handler";
+import { UpdateDealHandler } from "./application/commands/update-deal.handler";
 import {
   GetDealHandler,
   ListDealsHandler,
@@ -17,6 +18,7 @@ import {
     { provide: DEAL_REPOSITORY, useClass: PrismaDealRepository },
     CreateDealHandler,
     DeleteDealHandler,
+    UpdateDealHandler,
     GetDealHandler,
     ListDealsHandler,
   ],

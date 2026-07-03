@@ -33,6 +33,18 @@ export class Deal extends AggregateRoot<DealProps> {
     return new Deal(props, new UniqueEntityID(id));
   }
 
+  updateDetails(input: { name?: string; governingLaw?: string | null }): Result<void> {
+    if (input.name !== undefined) {
+      const nameErr = Guard.againstEmpty(input.name, 'Deal name');
+      if (nameErr) return Result.fail(nameErr);
+      this.props.name = input.name.trim();
+    }
+    if (input.governingLaw !== undefined) {
+      this.props.governingLaw = input.governingLaw?.trim() ?? null;
+    }
+    return Result.ok();
+  }
+
   get externalRef(): string {
     return this.props.externalRef;
   }
