@@ -63,7 +63,7 @@ async function bootstrap(): Promise<void> {
 
   app.enableCors({
     origin: config.get('corsOrigins', { infer: true }),
-    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'x-api-key'],
   });
 
