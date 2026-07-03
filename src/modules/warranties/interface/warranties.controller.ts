@@ -1,5 +1,5 @@
 import {
-  Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post,
+  Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query,
   UploadedFile, UseInterceptors, BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -17,6 +17,7 @@ import { UploadResponseDto } from './dto/upload-response.dto';
 import { OverrideCategoryDto, CategoryResultDto } from './dto/override-category.dto';
 import { DecidePositionDto, PositionResultDto } from './dto/decide-position.dto';
 import { WarrantyResponseDto } from './dto/warranty-response.dto';
+import { ListWarrantiesQueryDto, PaginatedWarrantiesDto } from './dto/list-warranties.dto';
 import { DocumentResponseDto } from './dto/document-response.dto';
 import { DeleteDocumentResultDto } from './dto/delete-document.dto';
 
@@ -67,10 +68,16 @@ export class WarrantiesController {
   }
 
   @Get('deals/:dealId/warranties')
-  @ApiOperation({ summary: 'List warranties for a deal (AI vs effective category + position)' })
-  @ApiOkResponse({ type: [WarrantyResponseDto] })
-  list(@Param('dealId', ParseUUIDPipe) dealId: string): Promise<WarrantyResponseDto[]> {
-    return this.queryBus.execute(new ListWarrantiesByDealQuery(dealId));
+  @ApiOperation({
+    summary: 'List warranties for a deal (AI vs effective category + position). ' +
+      'Pass page & pageSize to paginate; omit both for the full list.',
+  })
+  @ApiOkResponse({ type: PaginatedWarrantiesDto })
+  list(
+    @Param('dealId', ParseUUIDPipe) dealId: string,
+    @Query() query: ListWarrantiesQueryDto,
+  ): Promise<PaginatedWarrantiesDto> {
+    return this.queryBus.execute(new ListWarrantiesByDealQuery(dealId, query.page, query.pageSize));
   }
 
   @Get('warranties/:id')
