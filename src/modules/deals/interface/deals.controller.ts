@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiSecurity, ApiTags, ApiOkResponse, ApiCreatedResponse } from '@nestjs/swagger';
 import { CreateDealCommand } from '../application/commands/create-deal.command';
+import { DeleteDealCommand } from '../application/commands/delete-deal.command';
 import { GetDealQuery, ListDealsQuery } from '../application/queries/get-deal.query';
 import { CreateDealDto, DealResponseDto, CreatedDealDto } from './dto/create-deal.dto';
+import { DeleteDealResultDto } from './dto/delete-deal.dto';
 
 @ApiTags('deals')
 @ApiSecurity('service-key')
@@ -30,5 +32,12 @@ export class DealsController {
   @ApiOkResponse({ type: DealResponseDto })
   get(@Param('id', ParseUUIDPipe) id: string): Promise<DealResponseDto> {
     return this.queryBus.execute(new GetDealQuery(id));
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Permanently delete a deal: every document (+ MinIO objects), warranty, and exclusion under it' })
+  @ApiOkResponse({ type: DeleteDealResultDto })
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<DeleteDealResultDto> {
+    return this.commandBus.execute(new DeleteDealCommand(id));
   }
 }

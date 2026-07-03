@@ -34,6 +34,7 @@ export class FakeEmbeddingPort implements EmbeddingPort {
 
 export class FakeStoragePort implements StoragePort {
   store = new Map<string, Buffer>();
+  deleted: string[] = [];
   async putObject(key: string, body: Buffer): Promise<void> {
     this.store.set(key, body);
   }
@@ -42,6 +43,10 @@ export class FakeStoragePort implements StoragePort {
   }
   async presignGetUrl(key: string): Promise<string> {
     return `https://fake-storage.local/${key}`;
+  }
+  async deleteObject(key: string): Promise<void> {
+    this.store.delete(key);
+    this.deleted.push(key);
   }
 }
 

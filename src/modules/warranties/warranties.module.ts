@@ -14,10 +14,17 @@ import { UploadDocumentHandler } from './application/commands/upload-document.ha
 import { IngestParsedWarrantiesHandler } from './application/commands/ingest-parsed-warranties.handler';
 import { OverrideCategoryHandler } from './application/commands/override-category.handler';
 import { DecidePositionHandler } from './application/commands/decide-position.handler';
+import { DeleteDocumentHandler } from './application/commands/delete-document.handler';
 import { ListWarrantiesByDealHandler, GetWarrantyHandler } from './application/queries/list-warranties.handler';
 import { ListDocumentsByDealHandler, GetDocumentHandler } from './application/queries/list-documents.handler';
 
-const CommandHandlers = [UploadDocumentHandler, IngestParsedWarrantiesHandler, OverrideCategoryHandler, DecidePositionHandler];
+const CommandHandlers = [
+  UploadDocumentHandler,
+  IngestParsedWarrantiesHandler,
+  OverrideCategoryHandler,
+  DecidePositionHandler,
+  DeleteDocumentHandler,
+];
 const QueryHandlers = [ListWarrantiesByDealHandler, GetWarrantyHandler, ListDocumentsByDealHandler, GetDocumentHandler];
 const EventHandlers = [WarrantyCategorisedHandler];
 const Workers = [WarrantyParseProcessor, WarrantyEmbedProcessor];

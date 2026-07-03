@@ -47,6 +47,7 @@ export class IngestParsedWarrantiesHandler implements ICommandHandler<IngestPars
         }
         const created = Warranty.fromParsedRow({
           dealId: doc.dealId,
+          documentId: doc.id,
           spaReference: row.spaReference,
           title: row.title,
           fullText: row.fullText,

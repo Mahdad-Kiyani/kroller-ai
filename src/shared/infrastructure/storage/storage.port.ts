@@ -3,5 +3,6 @@ export interface StoragePort {
   putObject(key: string, body: Buffer, contentType: string): Promise<void>;
   getObject(key: string): Promise<Buffer>;
   presignGetUrl(key: string, expiresInSeconds?: number): Promise<string>;
+  deleteObject(key: string): Promise<void>;
 }
 export const STORAGE_PORT = Symbol('STORAGE_PORT');

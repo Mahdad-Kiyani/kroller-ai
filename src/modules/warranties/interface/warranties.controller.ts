@@ -1,5 +1,5 @@
 import {
-  Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post,
+  Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post,
   UploadedFile, UseInterceptors, BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -10,6 +10,7 @@ import {
 import { UploadDocumentCommand } from '../application/commands/upload-document.command';
 import { OverrideCategoryCommand } from '../application/commands/override-category.command';
 import { DecidePositionCommand } from '../application/commands/decide-position.command';
+import { DeleteDocumentCommand } from '../application/commands/delete-document.command';
 import { ListWarrantiesByDealQuery, GetWarrantyQuery } from '../application/queries/list-warranties.query';
 import { ListDocumentsByDealQuery, GetDocumentQuery } from '../application/queries/list-documents.query';
 import { UploadResponseDto } from './dto/upload-response.dto';
@@ -17,6 +18,7 @@ import { OverrideCategoryDto, CategoryResultDto } from './dto/override-category.
 import { DecidePositionDto, PositionResultDto } from './dto/decide-position.dto';
 import { WarrantyResponseDto } from './dto/warranty-response.dto';
 import { DocumentResponseDto } from './dto/document-response.dto';
+import { DeleteDocumentResultDto } from './dto/delete-document.dto';
 
 const ACTOR = 'service'; // replace with authenticated principal once portal identity is wired
 
@@ -55,6 +57,13 @@ export class WarrantiesController {
   @ApiOkResponse({ type: DocumentResponseDto })
   getDocument(@Param('id', ParseUUIDPipe) id: string): Promise<DocumentResponseDto> {
     return this.queryBus.execute(new GetDocumentQuery(id));
+  }
+
+  @Delete('documents/:id')
+  @ApiOperation({ summary: 'Permanently delete a document: its MinIO object and every warranty extracted from it' })
+  @ApiOkResponse({ type: DeleteDocumentResultDto })
+  deleteDocument(@Param('id', ParseUUIDPipe) id: string): Promise<DeleteDocumentResultDto> {
+    return this.commandBus.execute(new DeleteDocumentCommand(id));
   }
 
   @Get('deals/:dealId/warranties')

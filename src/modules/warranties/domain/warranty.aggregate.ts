@@ -14,6 +14,7 @@ import {
 
 export interface WarrantyProps {
   dealId: string;
+  documentId: string | null;
   spaReference: string;
   title: string;
   fullText: string;
@@ -45,6 +46,7 @@ export class Warranty extends AggregateRoot<WarrantyProps> {
 
   static fromParsedRow(input: {
     dealId: string;
+    documentId?: string | null;
     spaReference: string;
     title: string;
     fullText: string;
@@ -59,6 +61,7 @@ export class Warranty extends AggregateRoot<WarrantyProps> {
 
     const w = new Warranty({
       dealId: input.dealId,
+      documentId: input.documentId ?? null,
       spaReference: input.spaReference.trim(),
       title: input.title.trim(),
       fullText: input.fullText.trim(),
@@ -122,6 +125,7 @@ export class Warranty extends AggregateRoot<WarrantyProps> {
 
   // accessors
   get dealId(): string { return this.props.dealId; }
+  get documentId(): string | null { return this.props.documentId; }
   get spaReference(): string { return this.props.spaReference; }
   get title(): string { return this.props.title; }
   get fullText(): string { return this.props.fullText; }

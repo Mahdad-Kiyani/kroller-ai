@@ -55,6 +55,7 @@ model Document {
   mimeType   String
   status     DocumentStatus @default(UPLOADED)
   error      String?
+  warranties Warranty[]
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
@@ -65,6 +66,9 @@ model Warranty {
   id            String            @id @default(uuid())
   dealId        String
   deal          Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  // Nullable: warranties created before this link was added have no traceable source document.
+  documentId    String?
+  document      Document?         @relation(fields: [documentId], references: [id], onDelete: Cascade)
   spaReference  String // verbatim SPA numbering — never regenerated
   title         String
   fullText      String
@@ -98,6 +102,7 @@ model Warranty {
 
   @@unique([dealId, spaReference])
   @@index([dealId])
+  @@index([documentId])
 }
 
 model Exclusion {

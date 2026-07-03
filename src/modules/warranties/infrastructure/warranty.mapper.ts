@@ -8,6 +8,7 @@ export class WarrantyMapper {
   static toDomain(r: Rec): Warranty {
     return Warranty.reconstitute(r.id, {
       dealId: r.dealId,
+      documentId: r.documentId,
       spaReference: r.spaReference,
       title: r.title,
       fullText: r.fullText,
@@ -30,6 +31,7 @@ export class WarrantyMapper {
     return {
       id: w.id.toString(),
       dealId: w.dealId,
+      documentId: w.documentId,
       spaReference: w.spaReference,
       title: w.title,
       fullText: w.fullText,
