@@ -4,7 +4,9 @@ import { PrismaService } from '../prisma/prisma.service';
 export interface SimilarWarranty {
   id: string;
   dealId: string;
+  dealName: string;
   spaReference: string;
+  title: string;
   decidedPosition: string | null;
   decidedComment: string | null;
   category: string | null;
@@ -68,15 +70,17 @@ export class VectorStore {
     this.logger.debug(`Vector search: excludeDeal=${params.excludeDealId} category=${params.category} limit=${params.limit}`);
     const literal = this.toVectorLiteral(params.embedding);
     const rows = await this.prisma.$queryRawUnsafe<SimilarWarranty[]>(
-      `SELECT id, "dealId", "spaReference", "decidedPosition"::text AS "decidedPosition",
-              "decidedComment", "category"::text AS category,
-              (embedding <=> $1::vector) AS distance
-         FROM "Warranty"
-        WHERE embedding IS NOT NULL
-          AND "decidedPosition" IS NOT NULL
-          AND "dealId" <> $2
-          AND ($3::text IS NULL OR "category"::text = $3)
-        ORDER BY embedding <=> $1::vector
+      `SELECT w.id, w."dealId", d.name AS "dealName", w."spaReference", w.title,
+              w."decidedPosition"::text AS "decidedPosition",
+              w."decidedComment", w."category"::text AS category,
+              (w.embedding <=> $1::vector) AS distance
+         FROM "Warranty" w
+         JOIN "Deal" d ON d.id = w."dealId"
+        WHERE w.embedding IS NOT NULL
+          AND w."decidedPosition" IS NOT NULL
+          AND w."dealId" <> $2
+          AND ($3::text IS NULL OR w."category"::text = $3)
+        ORDER BY w.embedding <=> $1::vector
         LIMIT $4`,
       literal,
       params.excludeDealId,

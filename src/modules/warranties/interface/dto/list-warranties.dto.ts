@@ -3,13 +3,17 @@ import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
 import { WarrantyResponseDto } from './warranty-response.dto';
 
+// Bounds skip = (page - 1) * pageSize away from pathological OFFSET values reaching Postgres.
+const MAX_PAGE = 1_000_000;
+
 export class ListWarrantiesQueryDto {
   @ApiPropertyOptional({
     minimum: 1,
+    maximum: MAX_PAGE,
     example: 1,
     description: 'Page number (1-based). Omit together with pageSize to fetch the full unpaginated list.',
   })
-  @IsOptional() @Type(() => Number) @IsInt() @Min(1)
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(MAX_PAGE)
   page?: number;
 
   @ApiPropertyOptional({

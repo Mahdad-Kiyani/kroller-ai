@@ -22,9 +22,9 @@ describe('GenerateSuggestionsHandler (integration / learning loop)', () => {
     const repo = new InMemoryWarrantyRepository();
     const w = await seedWarranty(repo, 'deal-new');
     const neighbours: SimilarWarranty[] = [
-      { id: 'p1', dealId: 'deal-old', spaReference: '1', decidedPosition: 'COVERED', decidedComment: 'ok', category: 'BUSINESS', distance: 0.05 },
-      { id: 'p2', dealId: 'deal-old', spaReference: '2', decidedPosition: 'COVERED', decidedComment: 'ok', category: 'BUSINESS', distance: 0.2 },
-      { id: 'p3', dealId: 'deal-old', spaReference: '3', decidedPosition: 'EXCLUDED', decidedComment: 'no', category: 'BUSINESS', distance: 0.95 },
+      { id: 'p1', dealId: 'deal-old', dealName: 'Deal Old', spaReference: '1', title: 'Tax returns', decidedPosition: 'COVERED', decidedComment: 'ok', category: 'BUSINESS', distance: 0.05 },
+      { id: 'p2', dealId: 'deal-old', dealName: 'Deal Old', spaReference: '2', title: 'Tax returns', decidedPosition: 'COVERED', decidedComment: 'ok', category: 'BUSINESS', distance: 0.2 },
+      { id: 'p3', dealId: 'deal-old', dealName: 'Deal Old', spaReference: '3', title: 'Tax returns', decidedPosition: 'EXCLUDED', decidedComment: 'no', category: 'BUSINESS', distance: 0.95 },
     ];
     const vectors = new FakeVectorStore(neighbours) as unknown as VectorStore;
     const handler = new GenerateSuggestionsHandler(repo, new FakeEmbeddingPort(), vectors);

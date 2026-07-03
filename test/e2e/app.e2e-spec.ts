@@ -19,8 +19,8 @@ import {
 
 const KEY = process.env.SERVICE_API_KEY ?? 'test-key';
 const PRECEDENT: SimilarWarranty[] = [
-  { id: 'p1', dealId: 'old', spaReference: '1', decidedPosition: 'COVERED', decidedComment: 'ok', category: 'TAX', distance: 0.05 },
-  { id: 'p2', dealId: 'old', spaReference: '2', decidedPosition: 'COVERED', decidedComment: 'ok', category: 'TAX', distance: 0.3 },
+  { id: 'p1', dealId: 'old', dealName: 'Old Deal', spaReference: '1', title: 'Tax returns', decidedPosition: 'COVERED', decidedComment: 'ok', category: 'TAX', distance: 0.05 },
+  { id: 'p2', dealId: 'old', dealName: 'Old Deal', spaReference: '2', title: 'Tax returns', decidedPosition: 'COVERED', decidedComment: 'ok', category: 'TAX', distance: 0.3 },
 ];
 
 describe('W&I AI Service (e2e)', () => {
