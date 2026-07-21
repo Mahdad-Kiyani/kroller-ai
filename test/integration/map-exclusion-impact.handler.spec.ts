@@ -13,8 +13,8 @@ describe('MapExclusionImpactHandler (integration)', () => {
     await repo.save(exclusion);
 
     const mapper = new FakeExclusionMapper([
-      { warrantyId: 'w1', rationale: 'directly limited', confidence: 0.9 },
-      { warrantyId: 'w2', rationale: 'partially limited', confidence: 0.6 },
+      { warrantyId: 'w1', type: 'FULL', rationale: 'directly limited', confidence: 0.9 },
+      { warrantyId: 'w2', type: 'PARTIAL', rationale: 'partially limited', confidence: 0.6 },
     ]);
     const fakePrisma = {
       warranty: { findMany: async () => [

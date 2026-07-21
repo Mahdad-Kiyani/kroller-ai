@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@shared/infrastructure/prisma/prisma.service';
 import { ExclusionRepository, ExclusionWithImpacts } from '../domain/exclusion.repository';
 import { Exclusion } from '../domain/exclusion.aggregate';
-import { ExclusionImpact } from '../domain/exclusion-impact';
+import { ExclusionImpact, coerceImpactType } from '../domain/exclusion-impact';
 
 @Injectable()
 export class PrismaExclusionRepository implements ExclusionRepository {
@@ -27,7 +27,7 @@ export class PrismaExclusionRepository implements ExclusionRepository {
       this.prisma.exclusionImpact.deleteMany({ where: { exclusionId } }),
       this.prisma.exclusionImpact.createMany({
         data: impacts.map((i) => ({
-          exclusionId: i.exclusionId, warrantyId: i.warrantyId, rationale: i.rationale, confidence: i.confidence,
+          exclusionId: i.exclusionId, warrantyId: i.warrantyId, type: i.type, rationale: i.rationale, confidence: i.confidence,
         })),
         skipDuplicates: true,
       }),
@@ -40,17 +40,23 @@ export class PrismaExclusionRepository implements ExclusionRepository {
       include: { impacts: { include: { warranty: { select: { spaReference: true } } } } },
       orderBy: { createdAt: 'asc' },
     });
-    return rows.map((e) => ({
-      id: e.id,
-      label: e.label,
-      text: e.text,
-      isStandard: e.isStandard,
-      impacts: e.impacts.map((i) => ({
+    return rows.map((e) => {
+      const impacts = e.impacts.map((i) => ({
         warrantyId: i.warrantyId,
         spaReference: i.warranty.spaReference,
+        type: coerceImpactType(i.type),
         rationale: i.rationale,
         confidence: i.confidence,
-      })),
-    }));
+      }));
+      return {
+        id: e.id,
+        label: e.label,
+        text: e.text,
+        isStandard: e.isStandard,
+        affectedCount: impacts.length,
+        warrantyIds: impacts.map((i) => i.warrantyId),
+        impacts,
+      };
+    });
   }
 }

@@ -4,3 +4,6 @@ export class ListWarrantiesByDealQuery {
 export class GetWarrantyQuery {
   constructor(readonly id: string) {}
 }
+export class GetOneEyeViewQuery {
+  constructor(readonly dealId: string) {}
+}
