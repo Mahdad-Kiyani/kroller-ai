@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ClaudeClient } from '@shared/infrastructure/ai/claude.client';
 import { ExclusionMapperPort, MappableWarranty, MappedImpact } from '../application/ports/exclusion-mapper.port';
+import { coerceImpactType } from '../domain/exclusion-impact';
 
 /**
  * AI seam for exclusion-impact mapping. Gives Claude the exclusion text plus a compact
@@ -23,7 +24,9 @@ export class ClaudeExclusionMapper implements ExclusionMapperPort {
 
     const system =
       'You map an insurance exclusion to the warranties it affects. Return ONLY a JSON array of ' +
-      '{warrantyId, rationale, confidence}. Include ONLY warranties genuinely affected. ' +
+      '{warrantyId, type, rationale, confidence}. Include ONLY warranties genuinely affected. ' +
+      'type is one of FULL (exclusion wholly removes coverage), PARTIAL (limits/reduces coverage), ' +
+      'or CARVE_OUT (removes a specific case while the warranty otherwise stands). ' +
       'confidence is 0..1. Use the exact warrantyId values provided. No prose, no markdown.';
 
     const user = JSON.stringify({
@@ -34,7 +37,12 @@ export class ClaudeExclusionMapper implements ExclusionMapperPort {
     const raw = await this.claude.complete(system, user);
     const allowed = new Set(input.warranties.map((w) => w.id));
     const results = ClaudeClient.parseJsonArray<MappedImpact>(raw)
-      .map((m) => ({ warrantyId: String(m.warrantyId), rationale: String(m.rationale ?? ''), confidence: Number(m.confidence ?? 0) }))
+      .map((m) => ({
+        warrantyId: String(m.warrantyId),
+        type: coerceImpactType(m.type),
+        rationale: String(m.rationale ?? ''),
+        confidence: Number(m.confidence ?? 0),
+      }))
       .filter((m) => allowed.has(m.warrantyId)); // guard against hallucinated ids
 
     this.logger.log(`Exclusion mapped: ${results.length}/${input.warranties.length} warranties affected`);

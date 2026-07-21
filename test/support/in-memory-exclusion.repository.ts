@@ -15,11 +15,17 @@ export class InMemoryExclusionRepository implements ExclusionRepository {
     this.impacts.set(exclusionId, impacts);
   }
   async listByDeal(_dealId: string): Promise<ExclusionWithImpacts[]> {
-    return [...this.store.values()].map((e) => ({
-      id: e.id.toString(), label: e.label, text: e.text, isStandard: e.isStandard,
-      impacts: (this.impacts.get(e.id.toString()) ?? []).map((i) => ({
-        warrantyId: i.warrantyId, spaReference: '', rationale: i.rationale, confidence: i.confidence,
-      })),
-    }));
+    return [...this.store.values()].map((e) => {
+      const stored = this.impacts.get(e.id.toString()) ?? [];
+      const impacts = stored.map((i) => ({
+        warrantyId: i.warrantyId, spaReference: '', type: i.type, rationale: i.rationale, confidence: i.confidence,
+      }));
+      return {
+        id: e.id.toString(), label: e.label, text: e.text, isStandard: e.isStandard,
+        affectedCount: impacts.length,
+        warrantyIds: impacts.map((i) => i.warrantyId),
+        impacts,
+      };
+    });
   }
 }

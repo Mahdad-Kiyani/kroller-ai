@@ -37,6 +37,7 @@ export class MapExclusionImpactHandler implements ICommandHandler<MapExclusionIm
     const impacts = mapped.map((m) => ({
       exclusionId: cmd.exclusionId,
       warrantyId: m.warrantyId,
+      type: m.type,
       rationale: m.rationale,
       confidence: m.confidence,
     }));
@@ -49,7 +50,7 @@ export class MapExclusionImpactHandler implements ICommandHandler<MapExclusionIm
       entityType: 'Exclusion',
       entityId: cmd.exclusionId,
       before: null,
-      after: { source: 'AI', impacts: impacts.map((i) => ({ warrantyId: i.warrantyId, confidence: i.confidence })) },
+      after: { source: 'AI', impacts: impacts.map((i) => ({ warrantyId: i.warrantyId, type: i.type, confidence: i.confidence })) },
     });
     return { mapped: impacts.length };
   }

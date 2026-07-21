@@ -1,12 +1,16 @@
 import { Exclusion } from './exclusion.aggregate';
-import { ExclusionImpact } from './exclusion-impact';
+import { ExclusionImpact, ImpactType } from './exclusion-impact';
 
 export interface ExclusionWithImpacts {
   id: string;
   label: string;
   text: string;
   isStandard: boolean;
-  impacts: { warrantyId: string; spaReference: string; rationale: string; confidence: number }[];
+  /** Number of warranties this exclusion affects — drives the clickable count badge. */
+  affectedCount: number;
+  /** IDs of the affected warranties, so the frontend can expand without a second call. */
+  warrantyIds: string[];
+  impacts: { warrantyId: string; spaReference: string; type: ImpactType; rationale: string; confidence: number }[];
 }
 
 export interface ExclusionRepository {

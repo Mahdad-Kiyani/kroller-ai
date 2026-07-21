@@ -24,13 +24,26 @@ export class GenerateSuggestionsHandler implements ICommandHandler<GenerateSugge
   ) {}
 
   async execute(cmd: GenerateSuggestionsCommand): Promise<{ suggested: number; skipped: number }> {
-    const warranties = await this.warranties.listByDeal(cmd.dealId);
-    if (warranties.length === 0) return { suggested: 0, skipped: 0 };
+    const all = await this.warranties.listByDeal(cmd.dealId);
+    if (all.length === 0) return { suggested: 0, skipped: 0 };
 
-    const embeddings = await this.resolveEmbeddings(warranties);
+    // Scope to genuine suggestion candidates. Two exclusions, both authoritative here so the
+    // command behaves correctly no matter who calls it (UI button, requeue, backfill):
+    //   • already-decided warranties  — the human owns that position; re-suggesting is pure
+    //     noise/cost and would overwrite the row's aiPosition after the fact.
+    //   • un-categorised warranties   — findDecidedNeighbours filters by category, so a null
+    //     category can only ever retrieve nothing.
+    const candidates = all.filter((w) => !w.decidedPosition && w.category);
+    const preSkipped = all.length - candidates.length;
+    if (candidates.length === 0) {
+      this.logger.log(`Deal ${cmd.dealId}: suggested 0, skipped ${preSkipped} (no eligible warranties)`);
+      return { suggested: 0, skipped: preSkipped };
+    }
+
+    const embeddings = await this.resolveEmbeddings(candidates);
 
     const results = await Promise.all(
-      warranties.map(async (w) => {
+      candidates.map(async (w) => {
         const embedding = embeddings.get(w.id.toString());
         if (!embedding) return { w, suggestion: null };
         const neighbours = await this.vectors.findDecidedNeighbours({
@@ -44,7 +57,7 @@ export class GenerateSuggestionsHandler implements ICommandHandler<GenerateSugge
     );
 
     let suggested = 0;
-    let skipped = 0;
+    let skipped = preSkipped;
     for (const { w, suggestion } of results) {
       if (!suggestion) {
         skipped += 1;

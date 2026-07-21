@@ -28,6 +28,8 @@ class ImpactDto {
   warrantyId!: string;
   @ApiProperty({ example: '16.2' })
   spaReference!: string;
+  @ApiProperty({ enum: ['FULL', 'PARTIAL', 'CARVE_OUT'], example: 'CARVE_OUT', description: 'Coverage-effect of the exclusion on this warranty.' })
+  type!: 'FULL' | 'PARTIAL' | 'CARVE_OUT';
   @ApiProperty({ example: 'Disclosure carve-out directly limits this tax warranty.' })
   rationale!: string;
   @ApiProperty({ example: 0.88 })
@@ -42,6 +44,10 @@ export class ExclusionResponseDto {
   text!: string;
   @ApiProperty({ example: true })
   isStandard!: boolean;
+  @ApiProperty({ example: 4, description: 'Number of warranties this exclusion affects — drives the clickable count badge.' })
+  affectedCount!: number;
+  @ApiProperty({ type: [String], format: 'uuid', description: 'IDs of the affected warranties, for expand-on-click.' })
+  warrantyIds!: string[];
   @ApiProperty({ type: [ImpactDto] })
   impacts!: ImpactDto[];
 }

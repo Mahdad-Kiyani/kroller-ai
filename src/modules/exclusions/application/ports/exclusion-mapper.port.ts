@@ -1,3 +1,5 @@
+import { ImpactType } from '../../domain/exclusion-impact';
+
 /** Outbound port: AI maps an exclusion's text onto the warranties it affects. */
 export interface MappableWarranty {
   id: string;
@@ -7,6 +9,7 @@ export interface MappableWarranty {
 }
 export interface MappedImpact {
   warrantyId: string;
+  type: ImpactType;
   rationale: string;
   confidence: number;
 }

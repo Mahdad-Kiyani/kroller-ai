@@ -11,13 +11,14 @@ import { UploadDocumentCommand } from '../application/commands/upload-document.c
 import { OverrideCategoryCommand } from '../application/commands/override-category.command';
 import { DecidePositionCommand } from '../application/commands/decide-position.command';
 import { DeleteDocumentCommand } from '../application/commands/delete-document.command';
-import { ListWarrantiesByDealQuery, GetWarrantyQuery } from '../application/queries/list-warranties.query';
+import { ListWarrantiesByDealQuery, GetWarrantyQuery, GetOneEyeViewQuery } from '../application/queries/list-warranties.query';
 import { ListDocumentsByDealQuery, GetDocumentQuery } from '../application/queries/list-documents.query';
 import { UploadResponseDto } from './dto/upload-response.dto';
 import { OverrideCategoryDto, CategoryResultDto } from './dto/override-category.dto';
 import { DecidePositionDto, PositionResultDto } from './dto/decide-position.dto';
 import { WarrantyResponseDto } from './dto/warranty-response.dto';
 import { ListWarrantiesQueryDto, PaginatedWarrantiesDto } from './dto/list-warranties.dto';
+import { OneEyeViewDto } from './dto/one-eye-view.dto';
 import { DocumentResponseDto } from './dto/document-response.dto';
 import { DeleteDocumentResultDto } from './dto/delete-document.dto';
 
@@ -78,6 +79,16 @@ export class WarrantiesController {
     @Query() query: ListWarrantiesQueryDto,
   ): Promise<PaginatedWarrantiesDto> {
     return this.queryBus.execute(new ListWarrantiesByDealQuery(dealId, query.page, query.pageSize));
+  }
+
+  @Get('deals/:dealId/one-eye-view')
+  @ApiOperation({
+    summary: 'WSS one-eye-view: warranties grouped into the four coverage buckets ' +
+      '(COVERED, PARTIAL, EXCLUDED, UNMAPPED) with server-computed knowledge/materiality scrape flags.',
+  })
+  @ApiOkResponse({ type: OneEyeViewDto })
+  oneEyeView(@Param('dealId', ParseUUIDPipe) dealId: string): Promise<OneEyeViewDto> {
+    return this.queryBus.execute(new GetOneEyeViewQuery(dealId));
   }
 
   @Get('warranties/:id')
