@@ -10,6 +10,12 @@ export interface ExclusionWithImpacts {
   affectedCount: number;
   /** IDs of the affected warranties, so the frontend can expand without a second call. */
   warrantyIds: string[];
+  /**
+   * ISO timestamp of when this exclusion was mapped, or null if never mapped.
+   * Derived from the earliest impact's createdAt (impacts are only written by a
+   * successful map). Drives the frontend's "N mapped" badge on the table row.
+   */
+  mappedAt: string | null;
   impacts: { warrantyId: string; spaReference: string; type: ImpactType; rationale: string; confidence: number }[];
 }
 

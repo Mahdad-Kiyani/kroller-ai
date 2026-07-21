@@ -48,6 +48,13 @@ export class ExclusionResponseDto {
   affectedCount!: number;
   @ApiProperty({ type: [String], format: 'uuid', description: 'IDs of the affected warranties, for expand-on-click.' })
   warrantyIds!: string[];
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    example: '2026-01-01T12:00:00.000Z',
+    description: 'When this exclusion was mapped, or null if never mapped. Drives the "N mapped" table badge.',
+  })
+  mappedAt!: string | null;
   @ApiProperty({ type: [ImpactDto] })
   impacts!: ImpactDto[];
 }

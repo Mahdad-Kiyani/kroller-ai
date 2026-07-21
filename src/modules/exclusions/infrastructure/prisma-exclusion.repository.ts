@@ -48,6 +48,13 @@ export class PrismaExclusionRepository implements ExclusionRepository {
         rationale: i.rationale,
         confidence: i.confidence,
       }));
+      // "Mapped" is equivalent to "has impacts" — impacts are only ever written by a
+      // successful map. Derive the mapped-at timestamp from the earliest impact so the
+      // frontend's badge guard (mappedAt && impacts.length > 0) resolves correctly.
+      const mappedAt =
+        e.impacts.length > 0
+          ? e.impacts.reduce((min, i) => (i.createdAt < min ? i.createdAt : min), e.impacts[0].createdAt).toISOString()
+          : null;
       return {
         id: e.id,
         label: e.label,
@@ -55,6 +62,7 @@ export class PrismaExclusionRepository implements ExclusionRepository {
         isStandard: e.isStandard,
         affectedCount: impacts.length,
         warrantyIds: impacts.map((i) => i.warrantyId),
+        mappedAt,
         impacts,
       };
     });
