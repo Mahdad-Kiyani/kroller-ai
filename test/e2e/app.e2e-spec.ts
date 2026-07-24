@@ -36,7 +36,7 @@ describe('W&I AI Service (e2e)', () => {
       .overrideProvider(EMBEDDING_PORT).useValue(new FakeEmbeddingPort())
       .overrideProvider(VectorStore).useValue(new FakeVectorStore(PRECEDENT))
       .overrideProvider(EXCLUSION_MAPPER).useValue(
-        new FakeExclusionMapper([{ warrantyId: 'PLACEHOLDER', rationale: 'disclosed', confidence: 0.8 }]),
+        new FakeExclusionMapper([{ warrantyId: 'PLACEHOLDER', type: 'PARTIAL', rationale: 'disclosed', confidence: 0.8 }]),
       )
       .compile();
 

@@ -17,6 +17,13 @@ export class WarrantyMapper {
       pageRef: r.pageRef,
       category: r.category ? Category.of(r.category) : null,
       overriddenBy: r.overriddenBy,
+      aiKnowledgeScrape: r.aiKnowledgeScrape,
+      aiMaterialityScrape: r.aiMaterialityScrape,
+      aiKnowledgeScrapeText: r.aiKnowledgeScrapeText,
+      aiMaterialityScrapeText: r.aiMaterialityScrapeText,
+      knowledgeScrape: r.knowledgeScrape,
+      materialityScrape: r.materialityScrape,
+      scrapesOverriddenBy: r.scrapesOverriddenBy,
       aiPosition: r.aiPosition ? Position.of(r.aiPosition) : null,
       aiComment: r.aiComment,
       aiPositionScore: r.aiPositionScore,
@@ -39,6 +46,14 @@ export class WarrantyMapper {
       aiConfidence: w.aiConfidence,
       pageRef: w.pageRef,
       category: w.category,
+      // AI scrape detection (immutable suggestion) persisted at ingestion
+      aiKnowledgeScrape: w.aiKnowledgeScrape,
+      aiMaterialityScrape: w.aiMaterialityScrape,
+      aiKnowledgeScrapeText: w.aiKnowledgeScrapeText,
+      aiMaterialityScrapeText: w.aiMaterialityScrapeText,
+      // effective scrape status seeded from the AI suggestion
+      knowledgeScrape: w.knowledgeScrape,
+      materialityScrape: w.materialityScrape,
     };
   }
 
@@ -47,6 +62,11 @@ export class WarrantyMapper {
       category: w.category,
       overriddenBy: w.overriddenBy,
       overriddenAt: w.overriddenBy ? new Date() : null,
+      // effective scrape status + override audit (AI suggestion is immutable, set on create)
+      knowledgeScrape: w.knowledgeScrape,
+      materialityScrape: w.materialityScrape,
+      scrapesOverriddenBy: w.scrapesOverriddenBy,
+      scrapesOverriddenAt: w.scrapesOverriddenBy ? new Date() : null,
       aiPosition: w.aiPosition,
       aiComment: w.aiComment,
       aiPositionScore: w.aiPositionScore,

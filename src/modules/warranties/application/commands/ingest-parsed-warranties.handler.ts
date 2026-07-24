@@ -7,6 +7,25 @@ import { Category } from '../../domain/value-objects/warranty-category.vo';
 import { ConfidenceScore } from '../../domain/value-objects/confidence-score.vo';
 import { WarrantyRepository, WARRANTY_REPOSITORY } from '../../domain/warranty.repository';
 import { WarrantyParserPort, WARRANTY_PARSER } from '../ports/warranty-parser.port';
+import { ScrapeStatus } from '@prisma/client';
+import { detectScrapes, ScrapeKind, ScrapeMarker } from '../../domain/scrape-detector';
+
+/**
+ * Collapse the markers of one kind ('K' or 'M') into the immutable AI scrape suggestion:
+ * a status (YES when any qualifier matched, otherwise NO) plus the de-duplicated verbatim
+ * evidence text that triggered it. The detector never emits PARTIAL — that tri-state value
+ * is reserved for a human override via WarrantyScrapesOverriddenEvent. Evidence text is
+ * capped so a pathological warranty cannot bloat the row.
+ */
+function summariseMarkers(
+  markers: ScrapeMarker[],
+  kind: ScrapeKind,
+): { status: ScrapeStatus; text: string | null } {
+  const matches = markers.filter((m) => m.kind === kind).map((m) => m.match);
+  if (matches.length === 0) return { status: ScrapeStatus.NO, text: null };
+  const text = matches.join('; ');
+  return { status: ScrapeStatus.YES, text: text.length > 500 ? `${text.slice(0, 497)}...` : text };
+}
 
 /**
  * Runs in the warranty-parse worker. Fetches the document, runs the AI parser, builds
@@ -45,6 +64,14 @@ export class IngestParsedWarrantiesHandler implements ICommandHandler<IngestPars
           this.logger.warn(`Skipping row ${row.spaReference}: ${category.error ?? confidence.error}`);
           continue;
         }
+        // Deterministic, dependency-free scrape detection over the verbatim warranty text.
+        // The AI parser (LLM seam) is intentionally NOT asked to flag scrapes — per the
+        // legal/product distinction, detection must be reproducible and auditable, so it
+        // lives in the pure domain detector rather than being guessed by Claude.
+        const markers = detectScrapes(row.fullText);
+        const knowledge = summariseMarkers(markers, 'K');
+        const materiality = summariseMarkers(markers, 'M');
+
         const created = Warranty.fromParsedRow({
           dealId: doc.dealId,
           documentId: doc.id,
@@ -54,6 +81,10 @@ export class IngestParsedWarrantiesHandler implements ICommandHandler<IngestPars
           aiCategory: category.getValue(),
           aiConfidence: confidence.getValue(),
           pageRef: row.pageRef,
+          aiKnowledgeScrape: knowledge.status,
+          aiMaterialityScrape: materiality.status,
+          aiKnowledgeScrapeText: knowledge.text,
+          aiMaterialityScrapeText: materiality.text,
         });
         if (created.isFailure) continue;
         const w = this.publisher.mergeObjectContext(created.getValue());

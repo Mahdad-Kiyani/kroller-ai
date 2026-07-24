@@ -1,13 +1,18 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { PrismaService } from '@shared/infrastructure/prisma/prisma.service';
 import { GetOneEyeViewQuery } from './list-warranties.query';
+import { ScrapeStatus } from '@prisma/client';
 import {
   CoverageBucket,
   COVERAGE_BUCKETS,
   OneEyeViewReadModel,
   OneEyeWarranty,
 } from './one-eye-view.read-model';
-import { detectScrapes } from '../../domain/scrape-detector';
+
+/** A warranty "has" a scrape when its effective status is confirmed (YES) or partial. */
+function isScraped(status: ScrapeStatus): boolean {
+  return status === ScrapeStatus.YES || status === ScrapeStatus.PARTIAL;
+}
 
 /**
  * Resolves which of the four one-eye-view buckets a warranty belongs to.
@@ -35,7 +40,8 @@ export class GetOneEyeViewHandler implements IQueryHandler<GetOneEyeViewQuery> {
         id: true,
         spaReference: true,
         title: true,
-        fullText: true,
+        knowledgeScrape: true,
+        materialityScrape: true,
         decidedPosition: true,
         aiPosition: true,
       },
@@ -50,9 +56,10 @@ export class GetOneEyeViewHandler implements IQueryHandler<GetOneEyeViewQuery> {
     let materialityScrapeCount = 0;
 
     for (const w of rows) {
-      const markers = detectScrapes(w.fullText);
-      const hasKnowledgeScrape = markers.some((m) => m.kind === 'K');
-      const hasMaterialityScrape = markers.some((m) => m.kind === 'M');
+      // Read the persisted effective status (human override wins, AI detection is the
+      // fallback) rather than recomputing — so scrape overrides are reflected here.
+      const hasKnowledgeScrape = isScraped(w.knowledgeScrape);
+      const hasMaterialityScrape = isScraped(w.materialityScrape);
       if (hasKnowledgeScrape) knowledgeScrapeCount += 1;
       if (hasMaterialityScrape) materialityScrapeCount += 1;
 

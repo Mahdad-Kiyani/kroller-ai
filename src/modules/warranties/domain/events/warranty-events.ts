@@ -1,5 +1,5 @@
 import { DomainEvent } from '@shared/domain/domain-event';
-import { WarrantyCategory, CoveragePosition } from '@prisma/client';
+import { WarrantyCategory, CoveragePosition, ScrapeStatus } from '@prisma/client';
 
 export class WarrantyCategorisedEvent implements DomainEvent {
   readonly occurredAt = new Date();
@@ -24,6 +24,19 @@ export class WarrantyPositionDecidedEvent implements DomainEvent {
     readonly dealId: string,
     readonly aiPosition: CoveragePosition | null,
     readonly humanPosition: CoveragePosition,
+    readonly actorId: string,
+  ) {}
+}
+
+export class WarrantyScrapesOverriddenEvent implements DomainEvent {
+  readonly occurredAt = new Date();
+  constructor(
+    readonly aggregateId: string,
+    readonly dealId: string,
+    readonly aiKnowledgeScrape: ScrapeStatus,
+    readonly aiMaterialityScrape: ScrapeStatus,
+    readonly humanKnowledgeScrape: ScrapeStatus,
+    readonly humanMaterialityScrape: ScrapeStatus,
     readonly actorId: string,
   ) {}
 }

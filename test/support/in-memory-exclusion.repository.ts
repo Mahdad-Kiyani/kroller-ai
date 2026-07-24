@@ -24,6 +24,7 @@ export class InMemoryExclusionRepository implements ExclusionRepository {
         id: e.id.toString(), label: e.label, text: e.text, isStandard: e.isStandard,
         affectedCount: impacts.length,
         warrantyIds: impacts.map((i) => i.warrantyId),
+        mappedAt: null,
         impacts,
       };
     });

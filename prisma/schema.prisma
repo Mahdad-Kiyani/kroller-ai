@@ -32,18 +32,27 @@ enum DocumentStatus {
   FAILED
 }
 
+// Scrape presence, tri-state. NO = no qualifier; PARTIAL = a qualifier is present but only
+// narrows part of the statement; YES = the warranty is given subject to the qualifier.
+// The deterministic detector emits NO/YES; PARTIAL is reachable only via human override.
+enum ScrapeStatus {
+  NO
+  PARTIAL
+  YES
+}
+
 // A grouping/engagement the AI operates within. Owned by the panel; referenced here
 // by externalRef. Kept deliberately lightweight (this service is AI-only).
 model Deal {
-  id          String      @id @default(uuid())
-  externalRef String      @unique
-  name        String
+  id           String      @id @default(uuid())
+  externalRef  String      @unique
+  name         String
   governingLaw String?
-  warranties  Warranty[]
-  exclusions  Exclusion[]
-  documents   Document[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  warranties   Warranty[]
+  exclusions   Exclusion[]
+  documents    Document[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
 model Document {
@@ -63,46 +72,66 @@ model Document {
 }
 
 model Warranty {
-  id            String            @id @default(uuid())
-  dealId        String
-  deal          Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  id           String    @id @default(uuid())
+  dealId       String
+  deal         Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
   // Nullable: warranties created before this link was added have no traceable source document.
-  documentId    String?
-  document      Document?         @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  spaReference  String // verbatim SPA numbering — never regenerated
-  title         String
-  fullText      String
+  documentId   String?
+  document     Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  spaReference String // verbatim SPA numbering — never regenerated
+  title        String
+  fullText     String
 
   // --- AI categorisation (immutable suggestion) ---
-  aiCategory    WarrantyCategory?
-  aiConfidence  Float?
-  pageRef       Int?
+  aiCategory   WarrantyCategory?
+  aiConfidence Float?
+  pageRef      Int?
   // effective category after optional human override
-  category      WarrantyCategory?
-  overriddenBy  String?
-  overriddenAt  DateTime?
+  category     WarrantyCategory?
+  overriddenBy String?
+  overriddenAt DateTime?
 
   // --- AI coverage-position suggestion (learning loop) ---
-  aiPosition        CoveragePosition?
-  aiComment         String?
-  aiPositionScore   Float? // similarity-derived confidence 0..1
+  aiPosition      CoveragePosition?
+  aiComment       String?
+  aiPositionScore Float? // similarity-derived confidence 0..1
   // human decision (the training signal)
-  decidedPosition   CoveragePosition?
-  decidedComment    String?
-  decidedBy         String?
-  decidedAt         DateTime?
+  decidedPosition CoveragePosition?
+  decidedComment  String?
+  decidedBy       String?
+  decidedAt       DateTime?
+
+  // --- Knowledge / materiality "scrapes" ---
+  // AI-detected qualifiers (immutable suggestion), then effective values after optional
+  // human override, then override provenance. Mirrors the category/position override triad.
+  aiKnowledgeScrape       ScrapeStatus @default(NO)
+  aiMaterialityScrape     ScrapeStatus @default(NO)
+  // exact detected qualifier phrase(s) — legally meaningful evidence for the audit trail
+  aiKnowledgeScrapeText   String?
+  aiMaterialityScrapeText String?
+  knowledgeScrape         ScrapeStatus @default(NO)
+  materialityScrape       ScrapeStatus @default(NO)
+  scrapesOverriddenBy     String?
+  scrapesOverriddenAt     DateTime?
+
+  // --- stable ordering (deterministic in-deal sort) ---
+  sortKey String?
+  ordinal Int?
 
   // --- retrieval ---
-  embedding     Unsupported("vector(1536)")?
-  searchVector  Unsupported("tsvector")?
+  embedding    Unsupported("vector(1536)")?
+  searchVector Unsupported("tsvector")?
 
-  impacts       ExclusionImpact[]
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  impacts   ExclusionImpact[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   @@unique([dealId, spaReference])
   @@index([dealId])
   @@index([documentId])
+  @@index([dealId, sortKey, ordinal])
+  @@index([dealId, knowledgeScrape])
+  @@index([dealId, materialityScrape])
 }
 
 model Exclusion {

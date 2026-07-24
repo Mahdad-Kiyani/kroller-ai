@@ -13,6 +13,7 @@ import { WarrantyCategorisedHandler } from './infrastructure/warranty-categorise
 import { UploadDocumentHandler } from './application/commands/upload-document.handler';
 import { IngestParsedWarrantiesHandler } from './application/commands/ingest-parsed-warranties.handler';
 import { OverrideCategoryHandler } from './application/commands/override-category.handler';
+import { OverrideScrapesHandler } from './application/commands/override-scrapes.handler';
 import { DecidePositionHandler } from './application/commands/decide-position.handler';
 import { DeleteDocumentHandler } from './application/commands/delete-document.handler';
 import { ListWarrantiesByDealHandler, GetWarrantyHandler } from './application/queries/list-warranties.handler';
@@ -23,6 +24,7 @@ const CommandHandlers = [
   UploadDocumentHandler,
   IngestParsedWarrantiesHandler,
   OverrideCategoryHandler,
+  OverrideScrapesHandler,
   DecidePositionHandler,
   DeleteDocumentHandler,
 ];

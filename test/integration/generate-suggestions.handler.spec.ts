@@ -3,7 +3,7 @@ import { GenerateSuggestionsCommand } from '@modules/suggestions/application/com
 import { Warranty } from '@modules/warranties/domain/warranty.aggregate';
 import { Category } from '@modules/warranties/domain/value-objects/warranty-category.vo';
 import { ConfidenceScore } from '@modules/warranties/domain/value-objects/confidence-score.vo';
-import { WarrantyCategory, CoveragePosition } from '@prisma/client';
+import { WarrantyCategory, CoveragePosition, ScrapeStatus } from '@prisma/client';
 import { InMemoryWarrantyRepository } from '../support/in-memory-warranty.repository';
 import { FakeEmbeddingPort, FakeVectorStore } from '../support/fakes';
 import { VectorStore, SimilarWarranty } from '@shared/infrastructure/embeddings/vector-store.service';
@@ -41,6 +41,10 @@ function seedUncategorisedWarranty(repo: InMemoryWarrantyRepository, dealId: str
     category: null, overriddenBy: null,
     aiPosition: null, aiComment: null, aiPositionScore: null,
     decidedPosition: null, decidedComment: null, decidedBy: null,
+    aiKnowledgeScrape: ScrapeStatus.NO, aiMaterialityScrape: ScrapeStatus.NO,
+    aiKnowledgeScrapeText: null, aiMaterialityScrapeText: null,
+    knowledgeScrape: ScrapeStatus.NO, materialityScrape: ScrapeStatus.NO,
+    scrapesOverriddenBy: null,
   });
   return repo.save(w).then(() => w);
 }

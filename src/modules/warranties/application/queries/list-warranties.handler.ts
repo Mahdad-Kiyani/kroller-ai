@@ -13,6 +13,10 @@ function toReadModel(w: {
   category: WarrantyReadModel['category']; overriddenBy: string | null;
   aiPosition: WarrantyReadModel['aiPosition']; aiComment: string | null; aiPositionScore: number | null;
   decidedPosition: WarrantyReadModel['decidedPosition']; decidedBy: string | null;
+  knowledgeScrape: WarrantyReadModel['knowledgeScrape']; materialityScrape: WarrantyReadModel['materialityScrape'];
+  aiKnowledgeScrape: WarrantyReadModel['aiKnowledgeScrape']; aiMaterialityScrape: WarrantyReadModel['aiMaterialityScrape'];
+  aiKnowledgeScrapeText: string | null; aiMaterialityScrapeText: string | null;
+  scrapesOverriddenBy: string | null;
 }): WarrantyReadModel {
   return {
     id: w.id, dealId: w.dealId, spaReference: w.spaReference, title: w.title,
@@ -21,6 +25,10 @@ function toReadModel(w: {
     needsReview: w.aiConfidence === null || w.aiConfidence < 0.7,
     aiPosition: w.aiPosition, aiComment: w.aiComment, aiPositionScore: w.aiPositionScore,
     decidedPosition: w.decidedPosition, decidedBy: w.decidedBy,
+    knowledgeScrape: w.knowledgeScrape, materialityScrape: w.materialityScrape,
+    aiKnowledgeScrape: w.aiKnowledgeScrape, aiMaterialityScrape: w.aiMaterialityScrape,
+    aiKnowledgeScrapeText: w.aiKnowledgeScrapeText, aiMaterialityScrapeText: w.aiMaterialityScrapeText,
+    scrapesOverridden: w.scrapesOverriddenBy !== null,
   };
 }
 

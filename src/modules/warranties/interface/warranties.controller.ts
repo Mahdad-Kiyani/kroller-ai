@@ -9,12 +9,14 @@ import {
 } from '@nestjs/swagger';
 import { UploadDocumentCommand } from '../application/commands/upload-document.command';
 import { OverrideCategoryCommand } from '../application/commands/override-category.command';
+import { OverrideScrapesCommand } from '../application/commands/override-scrapes.command';
 import { DecidePositionCommand } from '../application/commands/decide-position.command';
 import { DeleteDocumentCommand } from '../application/commands/delete-document.command';
 import { ListWarrantiesByDealQuery, GetWarrantyQuery, GetOneEyeViewQuery } from '../application/queries/list-warranties.query';
 import { ListDocumentsByDealQuery, GetDocumentQuery } from '../application/queries/list-documents.query';
 import { UploadResponseDto } from './dto/upload-response.dto';
 import { OverrideCategoryDto, CategoryResultDto } from './dto/override-category.dto';
+import { OverrideScrapesDto, ScrapesResultDto } from './dto/override-scrapes.dto';
 import { DecidePositionDto, PositionResultDto } from './dto/decide-position.dto';
 import { WarrantyResponseDto } from './dto/warranty-response.dto';
 import { ListWarrantiesQueryDto, PaginatedWarrantiesDto } from './dto/list-warranties.dto';
@@ -103,6 +105,15 @@ export class WarrantiesController {
   @ApiOkResponse({ type: CategoryResultDto })
   override(@Param('id', ParseUUIDPipe) id: string, @Body() dto: OverrideCategoryDto): Promise<CategoryResultDto> {
     return this.commandBus.execute(new OverrideCategoryCommand(id, dto.category, ACTOR));
+  }
+
+  @Patch('warranties/:id/scrapes')
+  @ApiOperation({ summary: 'Override AI knowledge/materiality scrape detection (audited AI-vs-human)' })
+  @ApiOkResponse({ type: ScrapesResultDto })
+  overrideScrapes(@Param('id', ParseUUIDPipe) id: string, @Body() dto: OverrideScrapesDto): Promise<ScrapesResultDto> {
+    return this.commandBus.execute(
+      new OverrideScrapesCommand(id, dto.knowledgeScrape, dto.materialityScrape, ACTOR),
+    );
   }
 
   @Patch('warranties/:id/position')

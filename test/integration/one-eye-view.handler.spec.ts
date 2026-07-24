@@ -1,6 +1,7 @@
 import { GetOneEyeViewHandler } from '@modules/warranties/application/queries/one-eye-view.handler';
 import { GetOneEyeViewQuery } from '@modules/warranties/application/queries/list-warranties.query';
 import { PrismaService } from '@shared/infrastructure/prisma/prisma.service';
+import { ScrapeStatus } from '@prisma/client';
 
 interface Row {
   id: string;
@@ -10,6 +11,10 @@ interface Row {
   fullText: string;
   decidedPosition: 'COVERED' | 'PARTIAL' | 'EXCLUDED' | null;
   aiPosition: 'COVERED' | 'PARTIAL' | 'EXCLUDED' | null;
+  // The one-eye-view handler reads the persisted effective scrape status
+  // (human override wins, AI detection is the fallback) — never fullText.
+  knowledgeScrape: ScrapeStatus;
+  materialityScrape: ScrapeStatus;
 }
 
 function row(p: Partial<Row> & Pick<Row, 'id' | 'spaReference'>): Row {
@@ -19,6 +24,8 @@ function row(p: Partial<Row> & Pick<Row, 'id' | 'spaReference'>): Row {
     fullText: 'The Company owns the assets.',
     decidedPosition: null,
     aiPosition: null,
+    knowledgeScrape: ScrapeStatus.NO,
+    materialityScrape: ScrapeStatus.NO,
     ...p,
   };
 }
@@ -55,8 +62,20 @@ describe('GetOneEyeViewHandler (integration)', () => {
 
   it('flags knowledge and materiality scrapes per warranty and totals them', async () => {
     const rows = [
-      row({ id: 'k', spaReference: '2.1', decidedPosition: 'COVERED', fullText: "To the Seller's knowledge, no claims." }),
-      row({ id: 'm', spaReference: '2.2', decidedPosition: 'COVERED', fullText: 'True in all material respects.' }),
+      row({
+        id: 'k',
+        spaReference: '2.1',
+        decidedPosition: 'COVERED',
+        fullText: "To the Seller's knowledge, no claims.",
+        knowledgeScrape: ScrapeStatus.YES,
+      }),
+      row({
+        id: 'm',
+        spaReference: '2.2',
+        decidedPosition: 'COVERED',
+        fullText: 'True in all material respects.',
+        materialityScrape: ScrapeStatus.YES,
+      }),
       row({ id: 'clean', spaReference: '2.3', decidedPosition: 'COVERED', fullText: 'The Company owns the assets.' }),
     ];
     const handler = new GetOneEyeViewHandler(fakePrisma(rows));

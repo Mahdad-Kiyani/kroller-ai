@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { WarrantyCategory, CoveragePosition } from '@prisma/client';
+import { WarrantyCategory, CoveragePosition, ScrapeStatus } from '@prisma/client';
 
 export class WarrantyResponseDto {
   @ApiProperty({ format: 'uuid', example: '77b9c770-76f0-43c0-a42f-03f6e88adc16' })
@@ -30,4 +30,18 @@ export class WarrantyResponseDto {
   decidedPosition!: CoveragePosition | null;
   @ApiProperty({ example: null, nullable: true })
   decidedBy!: string | null;
+  @ApiProperty({ enum: ScrapeStatus, example: ScrapeStatus.YES, description: 'Effective knowledge-scrape status (human override wins).' })
+  knowledgeScrape!: ScrapeStatus;
+  @ApiProperty({ enum: ScrapeStatus, example: ScrapeStatus.NO, description: 'Effective materiality-scrape status (human override wins).' })
+  materialityScrape!: ScrapeStatus;
+  @ApiProperty({ enum: ScrapeStatus, example: ScrapeStatus.YES, description: 'Raw AI knowledge-scrape detection, preserved after override.' })
+  aiKnowledgeScrape!: ScrapeStatus;
+  @ApiProperty({ enum: ScrapeStatus, example: ScrapeStatus.NO, description: 'Raw AI materiality-scrape detection, preserved after override.' })
+  aiMaterialityScrape!: ScrapeStatus;
+  @ApiProperty({ example: "so far as the Seller is aware", nullable: true, description: 'Verbatim knowledge qualifier the AI flagged.' })
+  aiKnowledgeScrapeText!: string | null;
+  @ApiProperty({ example: null, nullable: true, description: 'Verbatim materiality qualifier the AI flagged.' })
+  aiMaterialityScrapeText!: string | null;
+  @ApiProperty({ example: false, description: 'True when a human overrode the AI scrape detection.' })
+  scrapesOverridden!: boolean;
 }
